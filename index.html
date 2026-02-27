@@ -28,6 +28,12 @@
 .formlbl{font-size:.82rem;font-weight:600;color:var(--terre);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;display:block}.formgrp{margin-bottom:20px}
 .evalcard{background:var(--blanc);border-radius:16px;padding:32px;margin-bottom:24px;box-shadow:0 2px 20px rgba(44,36,24,.06);border:1px solid var(--sable-dark);animation:fi .4s ease}
 @keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-stade{0%,100%{transform:scaleY(1);box-shadow:0 0 0 rgba(0,0,0,0)}50%{transform:scaleY(1.18);box-shadow:0 4px 16px rgba(0,0,0,.25)}}
+.maturity-bar-result{display:flex;gap:3px;margin:16px 0;border-radius:10px;overflow:visible}.maturity-seg-r{flex:1;padding:10px 6px;text-align:center;font-size:.68rem;font-weight:600;color:#fff;border-radius:6px;transition:all .3s;position:relative;cursor:default;opacity:.4}
+.maturity-seg-r.active{opacity:1;animation:pulse-stade 2s ease-in-out infinite;z-index:2}
+.maturity-seg-r .seg-arrow{display:none;position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent}
+.maturity-seg-r.active .seg-arrow{display:block}
+.stade-detail{border-radius:14px;padding:22px 24px;margin:16px 0;border-left:5px solid;background:var(--blanc);box-shadow:0 2px 16px rgba(44,36,24,.08)}.stade-detail h3{font-family:'DM Serif Display',serif;font-size:1.15rem;margin-bottom:8px}.stade-detail p{font-size:.88rem;line-height:1.6;color:var(--gris)}.stade-detail .sd-context{font-size:.86rem;line-height:1.55;color:var(--terre);margin-top:10px;padding:12px 16px;border-radius:8px}
 .qblk{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--sable-dark)}.qblk:last-of-type{border-bottom:none}
 .qn{font-size:.7rem;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .qt{font-size:.88rem;color:var(--noir);font-weight:500;margin-bottom:10px;line-height:1.5}
@@ -162,6 +168,29 @@ return(
 <div style={{fontFamily:"DM Serif Display",fontSize:"1.4rem",color:gl.color,marginBottom:"8px"}}>{gl.verdict}</div>
 <p style={{fontSize:".92rem",color:"var(--gris)",maxWidth:"600px",margin:"0 auto 12px",lineHeight:1.6}}>{gl.desc}</p>
 <div className="stade-card" style={{borderLeftColor:gStade.color,background:gStade.color+"10",textAlign:"left"}}><div className="stade-label" style={{color:gStade.color}}>Stade : {gStade.label}</div><div className="stade-desc">{gStade.desc}</div></div>
+<div style={{margin:"20px 0"}}><div style={{fontSize:".82rem",fontWeight:700,color:"var(--terre)",textTransform:"uppercase",letterSpacing:".04em",marginBottom:"8px"}}>Les 5 stades de maturit&eacute; organisationnelle</div>
+<div className="maturity-bar-result">{STADES.map(function(st,si){var isActive=st.id===gStade.id;return(<div key={st.id} className={"maturity-seg-r"+(isActive?" active":"")} style={{background:st.color}}>{st.label}<div className="seg-arrow" style={{borderTopColor:st.color,borderTop:"8px solid "+st.color}}/></div>)})}</div>
+<div className="stade-detail" style={{borderLeftColor:gStade.color}}>
+<h3 style={{color:gStade.color}}>{gStade.label}</h3>
+<p>{gStade.desc}</p>
+<div className="sd-context" style={{background:gStade.color+"10"}}>
+{(function(){
+var stadeIdx=window.getStade(globalAvg);
+var lowSteps=scores.filter(function(s){return window.getStade(s.avg)<stadeIdx});
+var highSteps=scores.filter(function(s){return window.getStade(s.avg)>stadeIdx});
+var parts=[];
+if(stadeIdx===0)parts.push("Votre organisation se situe au stade le plus critique. Les 6 \u00e9tapes sont en souffrance. La priorit\u00e9 absolue est de prot\u00e9ger vos talents cl\u00e9s et de poser les bases d\u2019une fondation cognitive avant toute chose.");
+if(stadeIdx===1)parts.push("Votre organisation r\u00e9agit aux probl\u00e8mes sans en traiter les racines. Elle est en mode pompier : on \u00e9teint les incendies mais on ne pr\u00e9vient pas les d\u00e9parts de feu.");
+if(stadeIdx===2)parts.push("Votre organisation anticipe et pr\u00e9vient. C\u2019est le stade du management durable : QVT, formation, pr\u00e9vention. Mais elle ne r\u00e9g\u00e9n\u00e8re pas encore activement ses ressources humaines et naturelles.");
+if(stadeIdx===3)parts.push("L\u2019intelligence collective est en marche. Les collaborateurs co-construisent les d\u00e9cisions. Le passage au r\u00e9g\u00e9n\u00e9ratif demande d\u2019amplifier la contribution mesurable et la r\u00e9invention biomim\u00e9tique.");
+if(stadeIdx===4)parts.push("Votre organisation d\u00e9veloppe activement l\u2019\u00e9cosyst\u00e8me humain qu\u2019elle accueille. Les 6 \u00e9tapes se renforcent mutuellement dans une spirale vertueuse.");
+if(highSteps.length>0)parts.push("Points forts : "+highSteps.map(function(s){return s.stp.icon+" "+s.stp.title+" ("+s.avg.toFixed(1)+")"}).join(", ")+" d\u00e9passent d\u00e9j\u00e0 votre stade global. Ce sont vos locomotives.");
+if(lowSteps.length>0)parts.push("Points de vigilance : "+lowSteps.map(function(s){return s.stp.icon+" "+s.stp.title+" ("+s.avg.toFixed(1)+")"}).join(", ")+" tirent votre maturit\u00e9 vers le bas. Ce sont vos priorit\u00e9s d\u2019action.");
+if(stadeIdx<4){var nextStade=STADES[stadeIdx+1];parts.push("Pour atteindre le stade suivant ("+nextStade.label+"), concentrez vos efforts sur les \u00e9tapes sous votre moyenne de "+globalAvg.toFixed(1)+"/5.");}
+return parts.map(function(p,pi){return React.createElement("p",{key:pi,style:{marginBottom:pi<parts.length-1?"8px":"0",fontSize:".86rem",lineHeight:1.55}},p)})
+})()}
+</div>
+</div></div>
 <div className="advice-box">{gl.advices.map(function(a,i){return(<div key={i} className="ab-line"><div className="ab-num">{i+1}</div><div>{a}</div></div>)})}</div>
 </div>
 <div className="radar-wrap"><h2>Hexagone organisationnel</h2><p style={{fontSize:".88rem",color:"var(--gris)",marginBottom:"16px"}}>Les 6 &eacute;tapes de {org}</p><canvas ref={radarRef}></canvas></div>
